@@ -1,0 +1,53 @@
+﻿@page "/create-support"
+@using SupportApp.Models
+@inject ISupportService SupportService
+
+<h3>Opret supporthenvendelse</h3>
+
+<EditForm Model="supportModel" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label>Navn</label>
+        <InputText class="form-control" @bind-Value="supportModel.Name" />
+        <ValidationMessage For="@(() => supportModel.Name)" />
+    </div>
+
+    <div class="mb-3">
+        <label>Email</label>
+        <InputText class="form-control" @bind-Value="supportModel.Email" />
+        <ValidationMessage For="@(() => supportModel.Email)" />
+    </div>
+
+    <div class="mb-3">
+        <label>Emne</label>
+        <InputText class="form-control" @bind-Value="supportModel.Subject" />
+        <ValidationMessage For="@(() => supportModel.Subject)" />
+    </div>
+
+    <div class="mb-3">
+        <label>Besked</label>
+        <InputTextArea class="form-control" @bind-Value="supportModel.Message" />
+        <ValidationMessage For="@(() => supportModel.Message)" />
+    </div>
+
+    <button class="btn btn-primary" type="submit">Send henvendelse</button>
+</EditForm>
+
+@if (saved)
+{
+    <div class="alert alert-success mt-3">Henvendelse oprettet!</div>
+}
+
+@code {
+    private SupportMessage supportModel = new();
+    private bool saved = false;
+
+    private async Task HandleValidSubmit()
+    {
+        await SupportService.AddSupportMessageAsync(supportModel);
+        saved = true;
+        supportModel = new(); // Nulstil formular
+    }
+}
