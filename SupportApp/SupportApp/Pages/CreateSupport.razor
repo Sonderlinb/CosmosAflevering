@@ -32,7 +32,8 @@
         <ValidationMessage For="@(() => supportModel.Message)" />
     </div>
 
-    <button class="btn btn-primary" type="submit">Send henvendelse</button>
+    <button class="btn btn-primary" type="submit" disabled="@isSubmitting">Send henvendelse</button>
+
 </EditForm>
 
 @if (saved)
@@ -43,11 +44,15 @@
 @code {
     private SupportMessage supportModel = new();
     private bool saved = false;
+    private bool isSubmitting = false;
+
 
     private async Task HandleValidSubmit()
     {
+        isSubmitting = true;
         await SupportService.AddSupportMessageAsync(supportModel);
         saved = true;
         supportModel = new(); // Nulstil formular
+        isSubmitting = false;
     }
 }

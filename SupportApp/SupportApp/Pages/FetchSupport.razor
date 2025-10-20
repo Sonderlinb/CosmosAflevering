@@ -1,0 +1,58 @@
+﻿@page "/fetch-support"
+@inject ISupportService SupportService
+
+<h3>Alle supporthenvendelser</h3>
+
+<input placeholder="Søg på navn eller email" @bind="searchTerm" class="form-control mb-3" />
+
+@if (messages == null)
+{
+    <p>Loading...</p>
+}
+else if (!FilteredMessages.Any())
+{
+    <p>Ingen supporthenvendelser fundet.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Navn</th>
+                <th>Email</th>
+                <th>Emne</th>
+                <th>Besked</th>
+                <th>Oprettet</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var msg in FilteredMessages)
+            {
+                <tr>
+                    <td>@msg.Name</td>
+                    <td>@msg.Email</td>
+                    <td>@msg.Subject</td>
+                    <td>@msg.Message</td>
+                    <td>@msg.CreatedAt.ToLocalTime()</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IEnumerable<SupportMessage> messages;
+    private string searchTerm = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        messages = await SupportService.GetAllSupportMessagesAsync();
+    }
+
+    private IEnumerable<SupportMessage> FilteredMessages =>
+        string.IsNullOrWhiteSpace(searchTerm)
+            ? messages
+            : messages.Where(m => 
+                m.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) || 
+                m.Email.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+}
