@@ -17,6 +17,9 @@ namespace SupportApp.Services
             var databaseId = config["CosmosDb:DatabaseId"];
             var containerId = config["CosmosDb:ContainerId"];
 
+            Console.WriteLine($" Cosmos config loaded: DB={databaseId}, Container={containerId}");
+
+
             _client = new CosmosClient(connectionString);
             _container = _client.GetContainer(databaseId, containerId);
         }
