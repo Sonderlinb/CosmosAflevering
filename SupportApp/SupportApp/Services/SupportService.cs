@@ -9,7 +9,7 @@ namespace SupportApp.Services
     public class SupportService : ISupportService
     {
         private readonly CosmosClient _client;
-        private readonly Microsoft.Azure.Cosmos.Container _container; // 👈 entydig reference
+        private readonly Microsoft.Azure.Cosmos.Container _container; // entydig reference
 
         public SupportService(IConfiguration config)
         {
