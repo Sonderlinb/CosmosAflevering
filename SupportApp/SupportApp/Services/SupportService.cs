@@ -1,9 +1,7 @@
 ﻿using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
 using SupportApp.Models;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Threading.Tasks;
 
 namespace SupportApp.Services
@@ -11,7 +9,7 @@ namespace SupportApp.Services
     public class SupportService : ISupportService
     {
         private readonly CosmosClient _client;
-        private readonly Container _container;
+        private readonly Microsoft.Azure.Cosmos.Container _container; // 👈 entydig reference
 
         public SupportService(IConfiguration config)
         {
@@ -20,7 +18,7 @@ namespace SupportApp.Services
             var containerId = config["CosmosDb:ContainerId"];
 
             _client = new CosmosClient(connectionString);
-            _container = _client.GetContainer(databaseId, containerId); // v3 måde at få container på
+            _container = _client.GetContainer(databaseId, containerId);
         }
 
         public async Task AddSupportMessageAsync(SupportMessage message)
