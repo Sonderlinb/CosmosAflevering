@@ -20,8 +20,8 @@ else
             <tr>
                 <th>Navn</th>
                 <th>Email</th>
-                <th>Emne</th>
-                <th>Besked</th>
+                <th>Kategori</th>
+                <th>Beskrivelse</th>
                 <th>Oprettet</th>
             </tr>
         </thead>
@@ -31,8 +31,8 @@ else
                 <tr>
                     <td>@msg.Name</td>
                     <td>@msg.Email</td>
-                    <td>@msg.Subject</td>
-                    <td>@msg.Message</td>
+                    <td>@msg.Category</td>
+                    <td>@msg.Description</td>
                     <td>@msg.CreatedAt.ToLocalTime()</td>
                 </tr>
             }
@@ -41,7 +41,7 @@ else
 }
 
 @code {
-    private IEnumerable<SupportMessage> messages;
+    private IEnumerable<SupportMessage>? messages;
     private string searchTerm = "";
 
     protected override async Task OnInitializedAsync()
@@ -51,8 +51,8 @@ else
 
     private IEnumerable<SupportMessage> FilteredMessages =>
         string.IsNullOrWhiteSpace(searchTerm)
-            ? messages
-            : messages.Where(m => 
-                m.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) || 
+            ? messages ?? Enumerable.Empty<SupportMessage>()
+            : messages!.Where(m =>
+                m.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
                 m.Email.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
 }

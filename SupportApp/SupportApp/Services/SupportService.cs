@@ -1,6 +1,7 @@
 ﻿using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
 using SupportApp.Models;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -9,7 +10,7 @@ namespace SupportApp.Services
     public class SupportService : ISupportService
     {
         private readonly CosmosClient _client;
-        private readonly Microsoft.Azure.Cosmos.Container _container; // entydig reference
+        private readonly Container _container;
 
         public SupportService(IConfiguration config)
         {
@@ -19,19 +20,24 @@ namespace SupportApp.Services
 
             Console.WriteLine($" Cosmos config loaded: DB={databaseId}, Container={containerId}");
 
-
             _client = new CosmosClient(connectionString);
             _container = _client.GetContainer(databaseId, containerId);
         }
 
         public async Task AddSupportMessageAsync(SupportMessage message)
         {
-            await _container.CreateItemAsync(message, new PartitionKey(message.PartitionKey));
+            message.Id ??= Guid.NewGuid().ToString();
+            message.CreatedAt = DateTime.UtcNow;
+
+            if (string.IsNullOrWhiteSpace(message.Category))
+                message.Category = "Ukendt kategori";
+
+            await _container.CreateItemAsync(message, new PartitionKey(message.Category));
         }
 
         public async Task<IEnumerable<SupportMessage>> GetAllSupportMessagesAsync()
         {
-            var query = new QueryDefinition("SELECT * FROM c ORDER BY c.CreatedAt DESC");
+            var query = new QueryDefinition("SELECT * FROM c ORDER BY c.date DESC");
             var iterator = _container.GetItemQueryIterator<SupportMessage>(query);
             var results = new List<SupportMessage>();
 
