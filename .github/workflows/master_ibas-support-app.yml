@@ -1,65 +1,76 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy ASP.Net Core app to Azure Web App - ibas-support-app
+name: Build and deploy ASP.NET Core app to Azure Web App - ibas-support-app
 
 on:
   push:
     branches:
-      - master
+      - main         # <- skiftet fra master til main (ret hvis du bruger master)
   workflow_dispatch:
+
+env:
+  PROJECT_PATH: CosmosAflevering/CosmosAflevering/SupportApp/SupportApp/SupportApp.csproj
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up .NET Core
+      - name: Set up .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.x'
+          dotnet-version: '8.0.x'   # .NET 8 (LTS)
 
-      - name: Build with dotnet
-        run: dotnet build --configuration Release
+      # Valgfrit: debug - se hvor csproj/sln ligger
+      - name: Print repo tree
+        run: |
+          pwd
+          find . -maxdepth 4 -type f \( -name "*.csproj" -o -name "*.sln" \) -print
 
-      - name: dotnet publish
-        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
+      - name: Restore
+        run: dotnet restore "${{ env.PROJECT_PATH }}"
+
+      - name: Build
+        run: dotnet build "${{ env.PROJECT_PATH }}" --configuration Release --no-restore
+
+      - name: Publish
+        run: dotnet publish "${{ env.PROJECT_PATH }}" -c Release -o ${{ github.workspace }}/publish --no-build
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
-          name: .net-app
-          path: ${{env.DOTNET_ROOT}}/myapp
+          name: app
+          path: ${{ github.workspace }}/publish
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      id-token: write   # required for azure/login OIDC
+      contents: read
 
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
-          name: .net-app
-      
+          name: app
+          path: ./publish
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_8A2EC7D864774E21801603FCB1E53028 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_DAD01A40B5014DA19D057262C7F5E6D4 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_2D2E7DEC4DE8468DAA3A286257C272F0 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_8B75E164D5CB405FB0BBBCF815421B1E }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_8F137C527CF94E47A1FF7CED40B59C94 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_0E558373623548AA9F653401EAFFE0D5 }}
 
       - name: Deploy to Azure Web App
-        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'ibas-support-app'
-          slot-name: 'Production'
-          package: .
-          
+          app-name: ibas-support-app       # <- ret hvis din webapp hedder noget andet
+          slot-name: Production
+          package: ./publish               # <- deploy det publicerede output
