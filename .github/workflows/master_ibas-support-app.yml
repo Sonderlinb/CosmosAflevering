@@ -6,71 +6,60 @@ name: Build and deploy ASP.Net Core app to Azure Web App - ibas-support-app
 on:
   push:
     branches:
-      - master     # behold master hvis det er jeres aktive branch (eller skift til main)
+      - master
   workflow_dispatch:
-
-env:
-  PROJECT_PATH: CosmosAflevering/CosmosAflevering/SupportApp/SupportApp/SupportApp.csproj
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: read #This is required for actions/checkout
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up .NET
+      - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '8.x'
 
-      # Debug: se hvor csproj/sln ligger (god at have med indtil det virker)
-      - name: Print repo tree
-        run: |
-          pwd
-          find . -maxdepth 6 -type f \( -name "*.csproj" -o -name "*.sln" \) -print
+      - name: Build with dotnet
+        run: dotnet build --configuration Release
 
-      - name: Restore
-        run: dotnet restore "${{ env.PROJECT_PATH }}"
-
-      - name: Build
-        run: dotnet build "${{ env.PROJECT_PATH }}" --configuration Release --no-restore
-
-      - name: Publish
-        run: dotnet publish "${{ env.PROJECT_PATH }}" -c Release -o ${{ github.workspace }}/publish --no-build
+      - name: dotnet publish
+        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
-          path: ${{ github.workspace }}/publish
+          path: ${{env.DOTNET_ROOT}}/myapp
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
     permissions:
-      id-token: write
-      contents: read
+      id-token: write #This is required for requesting the JWT
+      contents: read #This is required for actions/checkout
 
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: .net-app
-          path: ./publish
-
+      
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_876990DC9EFA498BAE436B88A3BCAEDB }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_D02E812AC15840178FC4611D3CD64404 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_49F037B62CED41F782A1246544C8DEF4 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_147139404E96442F87A6F940D99DEF1D }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_2AED53D7B4E34A02BAE493D3E9627C95 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_E4071C0C98924E52934266614C5F3621 }}
 
       - name: Deploy to Azure Web App
+        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'ibas-support-app'
           slot-name: 'Production'
-          package: ./publish
+          package: .
+          
