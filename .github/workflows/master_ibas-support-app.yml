@@ -1,12 +1,12 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy ASP.NET Core app to Azure Web App - ibas-support-app
+name: Build and deploy ASP.Net Core app to Azure Web App - ibas-support-app
 
 on:
   push:
     branches:
-      - master       
+      - master     # behold master hvis det er jeres aktive branch (eller skift til main)
   workflow_dispatch:
 
 env:
@@ -24,13 +24,13 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'   # .NET 8 (LTS)
+          dotnet-version: '8.0.x'
 
-      # Valgfrit: debug - se hvor csproj/sln ligger
+      # Debug: se hvor csproj/sln ligger (god at have med indtil det virker)
       - name: Print repo tree
         run: |
           pwd
-          find . -maxdepth 4 -type f \( -name "*.csproj" -o -name "*.sln" \) -print
+          find . -maxdepth 6 -type f \( -name "*.csproj" -o -name "*.sln" \) -print
 
       - name: Restore
         run: dotnet restore "${{ env.PROJECT_PATH }}"
@@ -44,33 +44,33 @@ jobs:
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
-          name: app
+          name: .net-app
           path: ${{ github.workspace }}/publish
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
     permissions:
-      id-token: write   # required for azure/login OIDC
+      id-token: write
       contents: read
 
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
-          name: app
+          name: .net-app
           path: ./publish
 
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_8B75E164D5CB405FB0BBBCF815421B1E }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_8F137C527CF94E47A1FF7CED40B59C94 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_0E558373623548AA9F653401EAFFE0D5 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_876990DC9EFA498BAE436B88A3BCAEDB }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_D02E812AC15840178FC4611D3CD64404 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_49F037B62CED41F782A1246544C8DEF4 }}
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: ibas-support-app       # <- ret hvis din webapp hedder noget andet
-          slot-name: Production
-          package: ./publish               # <- deploy det publicerede output
+          app-name: 'ibas-support-app'
+          slot-name: 'Production'
+          package: ./publish
