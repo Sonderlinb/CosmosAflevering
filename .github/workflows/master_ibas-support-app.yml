@@ -6,7 +6,7 @@ name: Build and deploy ASP.NET Core app to Azure Web App - ibas-support-app
 on:
   push:
     branches:
-      - main         # <- skiftet fra master til main (ret hvis du bruger master)
+      - master       
   workflow_dispatch:
 
 env:
